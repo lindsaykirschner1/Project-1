@@ -1,0 +1,23 @@
+table{
+    width: 440px;
+}
+
+td{
+    background-color: lightblue;
+    border-color: #000000;
+    border-style: solid;
+    width: 40px;
+}
+
+tr{
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.flex{
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Maybe consider using :active for when a box in the table is clicked on */

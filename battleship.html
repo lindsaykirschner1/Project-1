@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+
+<!-- ok so here's how this works:
+
+    Each player has 2 grids, so there are 4 grids total
+    Each grid has an id of two numbers:
+        the first indicates the player who sees it (player 1 or player 2)
+        the second indicates the player who it represents (player 1 or player 2)
+
+    Only 2 of the tables will be visible at a time, based on whose turn it is
+    
+    Each table cell has a unique id that is a combination of the table id & it's grid location
+        Ex. If I wanted to find A4 in table 11, the id for that cell would be 11A4
+    Ids for each cell are generated when the table is generated
+-->
+
+<html>
+    <head>
+
+        <link rel="stylesheet" type="text/css" href="battleshipStylesheet.css">
+
+    </head>
+
+    <body>
+
+        <script>
+
+            //makes player names & ships universal
+            var player1name;
+            var player1ships;
+            var player2name;
+            var player2ships;
+
+            var player1score = 24;
+            var player2score = 24;
+
+            var player1Alength = 5;
+            var player1Blength = 4;
+            var player1Slength = 3;
+
+            var player2Alength = 5;
+            var player2Blength = 4;
+            var player2Slength = 3;
+
+            //hides everything upon page load
+            window.addEventListener("load", initialPageLoad, false);
+
+            //makes content invisible on load
+            function initialPageLoad(){
+                p1inputprompts();
+            }
+
+            //loop for creating the table
+            function generateTable(playerNum) {
+                // creates a <table> element and a <tbody> element
+                const tbl = document.createElement("table");
+                const tblBody = document.createElement("tbody");
+
+                //ID's the table based off of whose table it is
+                tbl.setAttribute('id', playerNum);
+
+                // creating all cells
+                for (let i = 0; i < 11; i++) {
+                    // creates a table row
+                    const row = document.createElement("tr");
+                    row.set
+
+                    for (let j = 64; j < 75; j++) {
+                        // Create a <td> element and a text node, make the text
+                        // node the contents of the <td>, and put the <td> at
+                        // the end of the table row
+                        const cell = document.createElement("td");
+
+                        //Fills the header with A-J
+                        if (i == 0 && j != 64) {
+                            const cellText = document.createTextNode(String.fromCharCode(j));
+                            cell.appendChild(cellText);
+                        }
+
+                        //Fills the sides with 1-10
+                        else if (i >= 1 && j == 64) {
+                            const cellText = document.createTextNode(i);
+                            cell.appendChild(cellText);
+                        }
+
+                        //for everything else
+                        else if (i != 0 && j != 64) {
+
+                            //sets the cell id, gives it the onclick function
+                            cell.setAttribute('id', (playerNum + String.fromCharCode(j) + i));
+
+                            if (playerNum == 12 || playerNum == 21) {
+                                cell.setAttribute('onclick', 'shoot(this)');
+                            }
+                        }
+
+                        row.appendChild(cell);
+                    }
+
+                    // add the row to the end of the table body
+                    tblBody.appendChild(row);
+                }
+
+                // put the <tbody> in the <table>
+                tbl.appendChild(tblBody);
+                // appends <table> into <body>
+                const flexbox = document.getElementsByClassName("flex")[0];
+                flexbox.appendChild(tbl);
+                //document.body.appendChild(flexbox);
+
+                //make the table invis for now
+                document.getElementById(playerNum).style.display = "none";
+            }
+
+            function p1inputprompts(){
+
+                //creates the labels and inputs
+                const p1inputlabel = document.createElement("label");
+                const p1input = document.createElement("input");
+                const p1placementslabel = document.createElement("label");
+                const p1placements = document.createElement("input");
+                const p1inputsubmit = document.createElement("input");
+
+                p1inputlabel.setAttribute('for', 'player1input');
+                p1inputlabel.setAttribute('id', 'player1inputlabel');
+                const cellText = document.createTextNode("Player 1, please input your name: ");
+                p1inputlabel.appendChild(cellText);
+                document.body.appendChild(p1inputlabel);
+
+                p1input.setAttribute('type', 'text');
+                p1input.setAttribute('id', 'player1input');
+                document.body.appendChild(p1input);
+
+                p1placementslabel.setAttribute('for', 'player1placements');
+                p1placementslabel.setAttribute('id', 'player1placementslabel');
+                const cellText2 = document.createTextNode("Player 1, please input your ship placements: ");
+                p1placementslabel.appendChild(cellText2);
+                document.body.appendChild(p1placementslabel);
+
+                p1placements.setAttribute('type', 'text');
+                p1placements.setAttribute('id', 'player1placements');
+                document.body.appendChild(p1placements);
+
+                p1inputsubmit.setAttribute('type', 'submit');
+                p1inputsubmit.setAttribute('onclick', 'p1data()');
+                p1inputsubmit.setAttribute('id', 'player1inputsubmit');
+                document.body.appendChild(p1inputsubmit);
+            }
+
+            function p2inputprompts(){
+
+                //makes player 1's submission boxes disappear
+                document.body.removeChild(document.getElementById("player1input"));
+                document.body.removeChild(document.getElementById("player1placements"));
+                document.body.removeChild(document.getElementById("player1inputlabel"));
+                document.body.removeChild(document.getElementById("player1placementslabel"));
+                document.body.removeChild(document.getElementById("player1inputsubmit"));
+
+                //creates the labels and inputs
+                const p2inputlabel = document.createElement("label");
+                const p2input = document.createElement("input");
+                const p2placementslabel = document.createElement("label");
+                const p2placements = document.createElement("input");
+                const p2inputsubmit = document.createElement("input");
+
+                p2inputlabel.setAttribute('for', 'player2input');
+                p2inputlabel.setAttribute('id', 'player2inputlabel');
+                const cellText = document.createTextNode("Player 2, please input your name: ");
+                p2inputlabel.appendChild(cellText);
+                document.body.appendChild(p2inputlabel);
+
+                p2input.setAttribute('type', 'text');
+                p2input.setAttribute('id', 'player2input');
+                document.body.appendChild(p2input);
+
+                p2placementslabel.setAttribute('for', 'player2placements');
+                p2placementslabel.setAttribute('id', 'player2placementslabel');
+                const cellText2 = document.createTextNode("Player 2, please input your ship placements: ");
+                p2placementslabel.appendChild(cellText2);
+                document.body.appendChild(p2placementslabel);
+
+                p2placements.setAttribute('type', 'text');
+                p2placements.setAttribute('id', 'player2placements');
+                document.body.appendChild(p2placements);
+
+                p2inputsubmit.setAttribute('type', 'submit');
+                p2inputsubmit.setAttribute('onclick', 'p2data()');
+                p2inputsubmit.setAttribute('id', 'player2inputsubmit');
+                document.body.appendChild(p2inputsubmit);
+            }
+
+            //saves player 1's name & ship placements; makes their submission boxes disappear; makes player 2's submission boxes appear
+            function p1data(player1input, player1placements){
+
+                //makes player 1's submission boxes disappear
+                document.getElementById("player1input").style.display = "none";
+                document.getElementById("player1placements").style.display = "none";
+                document.getElementById("player1inputlabel").style.display = "none";
+                document.getElementById("player1placementslabel").style.display = "none";
+                document.getElementById("player1inputsubmit").style.display = "none";
+
+                //saves player 1's name & ship placements
+                player1name = document.getElementById("player1input").value;
+                player1ships = document.getElementById("player1placements").value;
+                const player11 = 11;
+                const player21 = 21;
+
+                generateTable(player11);
+                generateTable(player21);
+
+                //If the LETTER for A is the same for start and end
+                if (player1ships.substring(2,3) === player1ships.substring(5, 6)) {
+                    
+                    //mark placements based on number
+                    let letter = player1ships.substring(2,3);
+                    let startnum = parseInt(player1ships.substring(3,4));
+                    
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 5; i++) {
+                        document.getElementById(player11 + letter + (startnum+i)).textContent = "A";
+                        document.getElementById(player21 + letter + (startnum+i)).setAttribute('class', 'aircraftCarrier');
+                    }
+                }
+
+                //If the NUMBER for A is the same for start and end
+                else if (player1ships.substring(3,4) === player1ships.substring(6, 7)) {
+                    
+                    //mark placements based on number
+                    let number = player1ships.substring(3,4);
+                    let startlet = parseInt(player1ships.substring(2,3));
+                    
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 5; i++) {
+                        document.getElementById(player11 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "A";
+                        document.getElementById(player21 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'aircraftCarrier');
+                    }
+                }
+
+                //If the LETTER for B is the same for start and end
+                if (player1ships.substring(11, 12) === player1ships.substring(14, 15)) {
+                    
+                    //mark placements based on number
+                    let letter = player1ships.substring(11,12);
+                    let startnum = parseInt(player1ships.substring(12,13));
+
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 4; i++) {
+                        document.getElementById(player11 + letter + (startnum+i)).textContent = "B";
+                        document.getElementById(player21 + letter + (startnum+i)).setAttribute('class', 'battleShip');
+                    }
+                }
+
+                //If the NUMBER for B is the same for start and end
+                else if (player1ships.substring(12, 13) === player1ships.substring(15, 16)) {
+                    
+                    //mark placements based on number
+                    let number = parseInt(player1ships.substring(12, 13));
+                    let startlet = player1ships.substring(11, 12);
+                
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 4; i++) {
+                        document.getElementById(player11 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "B";
+                        document.getElementById(player21 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'battleShip');
+                    }
+                }
+
+                //If the LETTER for S is the same for start and end
+                if (player1ships.substring(20, 21) === player1ships.substring(23, 24)) {
+                    
+                    //mark placements based on number
+                    let letter = player1ships.substring(20, 21);
+                    let startnum = parseInt(player1ships.substring(21,22));
+
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 3; i++) {
+                        document.getElementById(player11 + letter + (startnum+i)).textContent = "S";
+                        document.getElementById(player21 + letter + (startnum+i)).setAttribute('class', 'submarine');
+                    }
+                }
+
+                //If the NUMBER for S is the same for start and end
+                else if (player1ships.substring(21, 22) === player1ships.substring(24, 25)) {
+                    
+                    //mark placements based on number
+                    let number = parseInt(player1ships.substring(21, 22));
+                    let startlet = player1ships.substring(20, 21);
+                    
+                    //add these to the spots on player 1's grid
+                    for (i = 0; i < 3; i++) {
+                        document.getElementById(player11 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "S";
+                        document.getElementById(player21 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'submarine');
+                    }
+                }
+
+                //call for player 2's prompts
+                p2inputprompts();
+            }
+
+            //save player 2's name
+            function p2data(player2input, player2placements){
+
+                //saves player 2's name & ship placements
+                player2name = document.getElementById("player2input").value;
+                player2ships = document.getElementById("player2placements").value;
+                const player22 = 22;
+                const player12 = 12;
+
+                //makes player 2's submission boxes disappear
+                document.body.removeChild(document.getElementById("player2input"));
+                document.body.removeChild(document.getElementById("player2placements"));
+                document.body.removeChild(document.getElementById("player2inputlabel"));
+                document.body.removeChild(document.getElementById("player2placementslabel"));
+                document.body.removeChild(document.getElementById("player2inputsubmit"));
+
+                generateTable(player22);
+                generateTable(player12);
+
+                //If the LETTER for A is the same for start and end
+                if (player2ships.substring(2,3) === player2ships.substring(5, 6)) {
+                    
+                    //mark placements based on number
+                    let letter = player2ships.substring(2,3);
+                    let startnum = parseInt(player2ships.substring(3,4));
+                    
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 5; i++) {
+                        document.getElementById(player22 + letter + (startnum+i)).textContent = "A";
+                        document.getElementById(player12 + letter + (startnum+i)).setAttribute('class', 'aircraftCarrier');
+                    }
+                }
+
+                //If the NUMBER for A is the same for start and end
+                else if (player2ships.substring(3,4) === player2ships.substring(6, 7)) {
+                    
+                    //mark placements based on number
+                    let number = player2ships.substring(3,4);
+                    let startlet = parseInt(player2ships.substring(2,3));
+                    
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 5; i++) {
+                        document.getElementById(player22 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "A";
+                        document.getElementById(player12 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'aircraftCarrier');
+                    }
+                }
+
+                //If the LETTER for B is the same for start and end
+                if (player2ships.substring(11, 12) === player2ships.substring(14, 15)) {
+                    
+                    //mark placements based on number
+                    let letter = player2ships.substring(11,12);
+                    let startnum = parseInt(player2ships.substring(12,13));
+
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 4; i++) {
+                        document.getElementById(player22 + letter + (startnum+i)).textContent = "B";
+                        document.getElementById(player12 + letter + (startnum+i)).setAttribute('class', 'battleShip');
+                    }
+                }
+
+                //If the NUMBER for B is the same for start and end
+                else if (player2ships.substring(12, 13) === player2ships.substring(15, 16)) {
+                    
+                    //mark placements based on number
+                    let number = parseInt(player2ships.substring(12, 13));
+                    let startlet = player2ships.substring(11, 12);
+
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 4; i++) {
+                        document.getElementById(player22 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "B";
+                        document.getElementById(player12 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'battleShip');
+                    }
+                }
+
+                //If the LETTER for S is the same for start and end
+                if (player2ships.substring(20, 21) === player2ships.substring(23, 24)) {
+                    
+                    //mark placements based on number
+                    let letter = player2ships.substring(20, 21);
+                    let startnum = parseInt(player2ships.substring(21,22));
+
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 3; i++) {
+                        document.getElementById(player22 + letter + (startnum+i)).textContent = "S";
+                        document.getElementById(player12 + letter + (startnum+i)).setAttribute('class', 'submarine');
+                    }
+                }
+
+                //If the NUMBER for S is the same for start and end
+                else if (player2ships.substring(21, 22) === player2ships.substring(24, 25)) {
+                    
+                    //mark placements based on number
+                    let number = parseInt(player2ships.substring(21, 22));
+                    let startlet = player2ships.substring(20, 21);
+                    
+                    //add these to the spots on player 2's grid
+                    for (i = 0; i < 3; i++) {
+                        document.getElementById(player22 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).textContent = "S";
+                        document.getElementById(player12 + (String.fromCharCode(startlet.charCodeAt(0) + i)) + number).setAttribute('class', 'submarine');
+                    }
+                }
+
+                p1prompt();
+            }
+
+            //prompt for P1 to begin their turn
+            function p1prompt() {
+
+                //creates the label and input
+                const p1promptlabel = document.createElement("label");
+                const p1promptsubmit = document.createElement("button");
+
+                p1promptsubmit.setAttribute('id', 'p1promptsubmit');
+                p1promptsubmit.setAttribute('type', 'button');
+                p1promptsubmit.setAttribute('onclick', 'p1tables()');
+                p1promptlabel.setAttribute('for', 'p1promptsubmit');
+                p1promptlabel.setAttribute('id', 'p1promptlabel');
+                p1promptlabel.setAttribute('id', 'p1promptlabel');
+
+                const cellText = document.createTextNode("Click OK to begin " + player1name + "'s turn ");
+                p1promptlabel.appendChild(cellText);
+                const cellText2 = document.createTextNode("OK");
+                p1promptsubmit.appendChild(cellText2);
+                document.body.appendChild(p1promptlabel);
+                document.body.appendChild(p1promptsubmit);
+            }
+
+            //prompt for P2 to begin their turn
+            function p2prompt() {
+
+                //creates the label and input
+                const p2promptlabel = document.createElement("label");
+                const p2promptsubmit = document.createElement("button");
+
+                p2promptsubmit.setAttribute('id', 'p2promptsubmit');
+                p2promptsubmit.setAttribute('type', 'button');
+                p2promptsubmit.setAttribute('onclick', 'p2tables()');
+                p2promptlabel.setAttribute('for', 'p2promptsubmit');
+                p2promptlabel.setAttribute('id', 'p2promptlabel');
+                p2promptlabel.setAttribute('id', 'p2promptlabel');
+
+                const cellText = document.createTextNode("Click OK to begin " + player2name + "'s turn ");
+                p2promptlabel.appendChild(cellText);
+                const cellText2 = document.createTextNode("OK");
+                p2promptsubmit.appendChild(cellText2);
+                document.body.appendChild(p2promptlabel);
+                document.body.appendChild(p2promptsubmit);
+            }
+
+            //makes p1 tables visible
+            function p1tables() {
+                //poof the p1prompts
+                document.body.removeChild(p1promptlabel);
+                document.body.removeChild(p1promptsubmit);
+
+                //make the player 1 tables visible!
+                document.getElementById("11").style.display = "table";
+                document.getElementById("12").style.display = "table";
+            }
+
+            //makes p2 tables visible
+            function p2tables() {
+                //poof the p2prompts
+                document.body.removeChild(p2promptlabel);
+                document.body.removeChild(p2promptsubmit);
+
+                //make the player 2 tables visible!
+                document.getElementById("22").style.display = "table";
+                document.getElementById("21").style.display = "table";
+            }
+
+            //tells players they can't click on the same spot twice
+            function invalidClick(cellId){
+                const placeHolder = document.createElement("h1");
+                placeHolder.style.textAlign = "center";
+                const cellText = document.createTextNode("Invalid selection, try again");
+                placeHolder.appendChild(cellText);
+                document.body.appendChild(placeHolder);
+
+                var delayInMilliseconds = 2500; //2.5 seconds
+                setTimeout(function() {
+                    document.body.removeChild(placeHolder);
+                }, delayInMilliseconds);
+            }
+
+            //checks if the player hit or missed the ship; changes the color of the square
+            function shoot(cellId)   {
+                if (cellId.getAttribute('class') != null) {
+                    //change color to red
+                    cellId.style.backgroundColor = "red";
+
+                    //change the corresponding board for the other player; adds to score; checks for downed ships
+                    if (cellId.getAttribute('id').substring(0, 2) == 12){
+                        document.getElementById("22" + cellId.getAttribute('id').substring(2)).style.backgroundColor = "red";
+                        player2score -= 2;
+
+                        const shipType = cellId.getAttribute('class');
+                        if (shipType == "aircraftCarrier") {
+                            player2Alength -= 1;
+                            if (player2Alength == 0)    {
+                                sunkenShip("aircraft carrier", player2name)
+                            }
+                        }
+                        if (shipType == "battleShip") {
+                            player2Blength -= 1;
+                            if (player2Blength == 0)    {
+                                sunkenShip("battleship", player2name)
+                            }
+                        }
+                        if (shipType == "submarine") {
+                            player2Slength -= 1;
+                            if (player2Slength == 0)    {
+                                sunkenShip("submarine", player2name)
+                            }
+                        }
+                    }
+                    else if (cellId.getAttribute('id').substring(0, 2) == 21) {
+                        document.getElementById("11" + cellId.getAttribute('id').substring(2)).style.backgroundColor = "red";
+                        player1score -= 2;
+
+                        const shipType = cellId.getAttribute('class');
+                        if (shipType == "aircraftCarrier") {
+                            player1Alength -= 1;
+                            if (player1Alength == 0)    {
+                                sunkenShip("aircraft carrier", player1name)
+                            }
+                        }
+                        else if (shipType == "battleShip") {
+                            player1Blength -= 1;
+                            if (player1Blength == 0)    {
+                                sunkenShip("battleship", player1name)
+                            }
+                        }
+                        else if (shipType == "submarine") {
+                            player1Slength -= 1;
+                            if (player1Slength == 0)    {
+                                sunkenShip("submarine", player1name)
+                            }
+                        }
+                    }
+
+                    //change onclick from shoot to invalidClick
+                    cellId.setAttribute('onclick', 'invalidClick()');
+                    
+
+                }
+                else {
+                    //change cell to be white
+                    cellId.style.backgroundColor = "white";
+
+                    //change onclick from shoot to invalidClick
+                    cellId.setAttribute('onclick', 'invalidClick()');
+                }
+
+                var delayInMilliseconds = 2000; //2 seconds
+
+                    setTimeout(function() {
+
+                    //switch to the next players turn...
+                    //If p1 just went
+                    if (document.getElementById("11").style.display == "table"){
+                        //unload the p1 tables
+                        document.getElementById("11").style.display = "none";
+                        document.getElementById("12").style.display = "none";
+
+                        if (player1score == 0)  {
+                            gameOver(player2name, player1name, ((player2Alength + player2Blength + player2Slength) * 2))
+                        }
+
+                        if (player2score == 0)  {
+                            gameOver(player1name, player2name, ((player1Alength + player1Blength + player1Slength) * 2))
+                        }
+
+                        if (player1score != 0 && player2score != 0) {
+                            //load up p2 prompts
+                            p2prompt();
+                        }
+                    }
+
+                    //If p2 just went
+                    else if (document.getElementById("22").style.display == "table"){
+                        //unload the p1 tables
+                        document.getElementById("22").style.display = "none";
+                        document.getElementById("21").style.display = "none";
+
+                        if (player1score == 0)  {
+                            gameOver(player2name, player1name, ((player2Alength + player2Blength + player2Slength) * 2))
+                        }
+
+                        if (player2score == 0)  {
+                            gameOver(player1name, player2name, ((player1Alength + player1Blength + player1Slength) * 2))
+                        }
+
+                        if (player1score != 0 && player2score != 0) {
+                            //load up p1 prompts
+                            p1prompt();
+                        }
+                    }
+                }, delayInMilliseconds);
+            }
+        
+            //displays text when a players ship is sunk
+            function sunkenShip(shipType, playerName) {
+                const placeHolder = document.createElement("h1");
+                placeHolder.style.textAlign = "center";
+                const cellText = document.createTextNode("You've sunk " + playerName + "'s " + shipType);
+                placeHolder.appendChild(cellText);
+                document.body.appendChild(placeHolder);
+
+                var delayInMilliseconds = 2000; //2 seconds
+                setTimeout(function() {
+                    document.body.removeChild(placeHolder);
+                }, delayInMilliseconds);
+            }
+
+            function gameOver(winner, loser, score) {
+
+                const placeHolder = document.createElement("h1");
+                placeHolder.style.textAlign = "center";
+                const cellText = document.createTextNode(winner + " is the winner!");
+                placeHolder.appendChild(cellText);
+                document.body.appendChild(placeHolder);
+
+                const placeHolder2 = document.createElement("h2");
+                placeHolder2.style.textAlign = "center";
+                const cellText2 = document.createTextNode("Scores:");
+                placeHolder2.appendChild(cellText2);
+                document.body.appendChild(placeHolder2);
+
+                const placeHolder3 = document.createElement("h2");
+                placeHolder3.style.textAlign = "center";
+                const cellText3 = document.createTextNode(winner + ": " + score);
+                placeHolder3.appendChild(cellText3);
+                document.body.appendChild(placeHolder3);
+
+                const placeHolder4 = document.createElement("h2");
+                placeHolder4.style.textAlign = "center";
+                const cellText4 = document.createTextNode(loser + ": 0");
+                placeHolder4.appendChild(cellText4);
+                document.body.appendChild(placeHolder4);
+            }
+
+        </script>
+
+        <!-- i'm wrapping the tables in a div with the flexbox attribute 
+        This is so I can get them aligned! -->
+        <div class="flex">
+
+
+            <!-- <table cellspacing="0" id="1player1table"> -->
+
+        </div>
+
+    </body>
+
+</html>
